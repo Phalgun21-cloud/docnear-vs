@@ -1,0 +1,27 @@
+{
+  "name": "docnear-vs",
+  "version": "1.0.0",
+  "description": "DocNear Healthcare App - Full Stack Application",
+  "private": true,
+  "scripts": {
+    "dev": "npm run dev:frontend",
+    "dev:frontend": "cd healthcare-app/frontend && npm run dev",
+    "dev:backend": "cd healthcare-app/backend && npm run dev",
+    "dev:all": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "build": "npm run build:frontend",
+    "build:frontend": "cd healthcare-app/frontend && npm run build",
+    "install:all": "npm install && cd healthcare-app/frontend && npm install && cd ../backend && npm install",
+    "start:backend": "cd healthcare-app/backend && npm start",
+    "start:frontend": "cd healthcare-app/frontend && npm run preview"
+  },
+  "keywords": [
+    "healthcare",
+    "appointments",
+    "doctors"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

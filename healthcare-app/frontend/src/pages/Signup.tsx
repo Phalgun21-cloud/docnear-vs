@@ -39,13 +39,22 @@ export const Signup = () => {
     e.preventDefault();
     setLoading(true);
 
-    try {
-      await signup(formData.name, formData.email, formData.password, role);
-      toast({
-        title: 'OTP Sent!',
-        description: 'Please check your email for the verification OTP.',
-      });
-      navigate('/verify-otp', { state: { email: formData.email, role } });
+        try {
+          const response = await signup(formData.name, formData.email, formData.password, role);
+          // Check if OTP is in response (development mode when email not configured)
+          if (response.otp) {
+            toast({
+              title: 'OTP Generated!',
+              description: `Email not configured. Your OTP is: ${response.otp}. Please save this.`,
+              duration: 10000,
+            });
+          } else {
+            toast({
+              title: 'OTP Sent!',
+              description: 'Please check your email for the verification OTP.',
+            });
+          }
+          navigate('/verify-otp', { state: { email: formData.email, role, otp: response.otp } });
     } catch (error: any) {
       console.error('Signup error:', error);
       const errorMessage = error.response?.data?.message || error.message || 'Something went wrong. Please try again.';

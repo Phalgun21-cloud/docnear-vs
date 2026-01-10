@@ -9,11 +9,22 @@ const doctorSchema = new mongoose.Schema({
   specialist: String,
   location: {
     lat: Number,
-    lng: Number
+    lng: Number,
+    address: String,
+    formatted_address: String
   },
   rating: { type: Number, default: 0 },
+  userRatingsTotal: { type: Number, default: 0 },
   active: { type: Boolean, default: true },
-  availableSlots: [String]
+  availableSlots: [String],
+  googlePlaceId: { type: String, unique: true, sparse: true },
+  googleData: {
+    placeId: String,
+    photos: [String],
+    openingHours: Object,
+    priceLevel: Number,
+    types: [String]
+  }
 });
 
 module.exports = mongoose.model("Doctor", doctorSchema);

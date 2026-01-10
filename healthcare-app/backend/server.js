@@ -1,7 +1,14 @@
-require("dotenv").config();
+require("dotenv").config({ path: require('path').resolve(__dirname, '.env') });
 const express = require("express");
 const cors = require("cors");
 const connectDB = require("./config/db");
+
+// Debug: Log environment variables (masked)
+console.log("🔍 Environment Check:");
+console.log("  PORT:", process.env.PORT || "5001 (default)");
+console.log("  EMAIL:", process.env.EMAIL ? `${process.env.EMAIL.substring(0, 5)}***` : "NOT SET");
+console.log("  EMAIL_PASS:", process.env.EMAIL_PASS ? "SET" : "NOT SET");
+console.log("  MONGO_URI:", process.env.MONGO_URI ? "SET" : "NOT SET");
 
 const app = express();
 connectDB();

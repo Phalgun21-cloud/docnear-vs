@@ -48,14 +48,14 @@ export const authAPI = {
 
 // Doctors API
 export const doctorsAPI = {
-  search: (params: { specialist?: string }) =>
+  search: (params: { specialist?: string; userLat?: number; userLng?: number }) =>
     api.get('/doctors/search', { params }),
   getById: (id: string) => api.get(`/doctors/${id}`),
 };
 
 // Appointments API
 export const appointmentsAPI = {
-  book: (data: { patientId: string; doctorId: string }) =>
+  book: (data: { patientId: string; doctorId: string; date: string; time: string }) =>
     api.post('/appointments/book', data),
   accept: (id: string) => api.post(`/appointments/accept/${id}`),
   getAll: (userId: string, role: 'patient' | 'doctor') =>

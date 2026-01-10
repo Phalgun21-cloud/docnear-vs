@@ -56,10 +56,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  const signup = async (name: string, email: string, password: string, role: 'patient' | 'doctor') => {
-    try {
-      const response = await authAPI.signup({ name, email, password, role });
-      return response;
+      const signup = async (name: string, email: string, password: string, role: 'patient' | 'doctor') => {
+        try {
+          const response = await authAPI.signup({ name, email, password, role });
+          // Return response data which may include OTP in development mode
+          return response.data;
     } catch (error: any) {
       // Preserve the full error object with response data
       if (error.response) {

@@ -55,15 +55,44 @@ exports.signup = async (req, res) => {
       });
     }
 
-    // Try to send OTP, but don't fail signup if email fails
+    // Try to send OTP
+    let emailSent = false;
+    let emailError = null;
     try {
-      await sendOtp(email, otp);
-    } catch (emailError) {
-      console.error("Failed to send OTP email:", emailError);
-      // Still return success - OTP is saved in database
+      console.log(`📧 Attempting to send OTP to: ${email}`);
+      const emailResult = await sendOtp(email, otp);
+      emailSent = emailResult?.sent === true;
+      if (emailSent) {
+        console.log(`✅ OTP email sent successfully to ${email}`);
+      } else {
+        console.log(`⚠️  OTP email not sent: ${emailResult?.message || emailResult?.error || 'Unknown error'}`);
+        emailError = emailResult?.error || emailResult?.message;
+        // Log OTP as fallback
+        console.log(`📧 OTP for ${email}: ${otp}`);
+      }
+    } catch (err) {
+      emailError = err;
+      console.error("❌ Failed to send OTP email:", err.message);
+      if (err.code) {
+        console.error(`   Error code: ${err.code}`);
+      }
+      // OTP is still saved in database and logged to console
+      console.log(`📧 FALLBACK - OTP for ${email}: ${otp}`);
     }
 
-    res.json({ message: "OTP Sent", role: role.toLowerCase() });
+    // Return response with OTP in development mode if email failed
+    const response = { 
+      message: emailSent ? "OTP Sent to your email" : "OTP generated (check console/logs)", 
+      role: role.toLowerCase() 
+    };
+
+    // In development, include OTP in response if email failed
+    if (!emailSent && process.env.NODE_ENV !== 'production') {
+      response.otp = otp;
+      response.note = "Email not configured. Use this OTP for verification.";
+    }
+
+    res.json(response);
   } catch (error) {
     console.error("Signup error:", error);
     res.status(500).json({ message: error.message || "Signup failed. Please try again." });

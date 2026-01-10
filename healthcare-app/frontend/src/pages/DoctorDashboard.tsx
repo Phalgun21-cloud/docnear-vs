@@ -28,6 +28,8 @@ interface Appointment {
   doctorId: string;
   status: 'Pending' | 'Accepted';
   otp?: string;
+  date?: string;
+  time?: string;
   createdAt?: string;
   patient?: {
     name: string;
@@ -297,30 +299,44 @@ export const DoctorDashboard = () => {
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: 20 }}
                         transition={{ delay: index * 0.05, duration: 0.3 }}
-                        className="flex items-center justify-between p-5 rounded-xl border border-gray-200 hover:border-primary/50 hover:shadow-md transition-all bg-white group"
+                        className="flex flex-col md:flex-row items-start md:items-center justify-between p-5 rounded-xl border border-gray-200 hover:border-primary/50 hover:shadow-md transition-all bg-white group gap-4"
                       >
-                        <div className="flex items-center gap-4">
-                          <div className="p-3 rounded-xl bg-primary/10 group-hover:bg-primary/20 transition-colors">
+                        <div className="flex items-start gap-4 flex-1">
+                          <div className="p-3 rounded-xl bg-primary/10 group-hover:bg-primary/20 transition-colors flex-shrink-0">
                             <Users className="h-6 w-6 text-primary" />
                           </div>
-                          <div>
+                          <div className="flex-1 min-w-0">
                             <h3 className="font-bold text-lg text-gray-900 mb-1">
                               {appointment.patient?.name || 'Patient'}
                             </h3>
-                            <p className="text-gray-600 text-sm mb-1">
+                            <p className="text-gray-600 text-sm mb-2">
                               {appointment.patient?.email || 'patient@example.com'}
                             </p>
-                            {appointment.createdAt && (
-                              <div className="flex items-center gap-2 mt-1">
-                                <Clock className="h-3.5 w-3.5 text-gray-400" />
-                                <span className="text-xs text-gray-500">
-                                  Requested on {new Date(appointment.createdAt).toLocaleDateString()}
-                                </span>
-                              </div>
-                            )}
+                            <div className="flex flex-wrap items-center gap-3">
+                              {appointment.date && (
+                                <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-blue-50">
+                                  <Calendar className="h-3.5 w-3.5 text-blue-600" />
+                                  <span className="text-xs text-blue-700 font-medium">{appointment.date}</span>
+                                </div>
+                              )}
+                              {appointment.time && (
+                                <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-green-50">
+                                  <Clock className="h-3.5 w-3.5 text-green-600" />
+                                  <span className="text-xs text-green-700 font-medium">{appointment.time}</span>
+                                </div>
+                              )}
+                              {appointment.createdAt && (
+                                <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-gray-50">
+                                  <Clock className="h-3.5 w-3.5 text-gray-400" />
+                                  <span className="text-xs text-gray-600">
+                                    Requested {new Date(appointment.createdAt).toLocaleDateString()}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </div>
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-4 flex-shrink-0">
                           <Badge
                             variant={
                               appointment.status === 'Accepted'
@@ -329,7 +345,7 @@ export const DoctorDashboard = () => {
                                 ? 'warning'
                                 : 'secondary'
                             }
-                            className="text-sm font-semibold px-3 py-1"
+                            className="text-sm font-semibold px-3 py-1.5"
                           >
                             {appointment.status}
                           </Badge>
@@ -337,15 +353,15 @@ export const DoctorDashboard = () => {
                             <Button
                               onClick={() => handleAcceptAppointment(appointment._id)}
                               size="sm"
-                              className="btn-gradient font-semibold"
+                              className="btn-gradient font-semibold px-6"
                             >
                               Accept
                             </Button>
                           )}
                           {appointment.status === 'Accepted' && appointment.otp && (
-                            <div className="text-right">
-                              <p className="text-xs text-gray-500 mb-1">OTP</p>
-                              <p className="text-lg font-mono font-bold text-primary">
+                            <div className="text-right px-3 py-2 rounded-lg bg-primary/5 border border-primary/20">
+                              <p className="text-xs text-gray-500 mb-1 font-medium">Verification OTP</p>
+                              <p className="text-xl font-mono font-bold text-primary">
                                 {appointment.otp}
                               </p>
                             </div>

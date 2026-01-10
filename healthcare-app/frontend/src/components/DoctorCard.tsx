@@ -17,6 +17,7 @@ interface Doctor {
   rating: number;
   active: boolean;
   availableSlots?: string[];
+  distance?: number; // Distance in kilometers
 }
 
 interface DoctorCardProps {
@@ -66,15 +67,28 @@ export const DoctorCard: React.FC<DoctorCardProps> = ({ doctor, isAIPick = false
               )}
             </div>
 
-            {/* Rating */}
-            <div className="flex items-center gap-2 mb-4">
-              <div className="flex items-center gap-1">
-                <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
-                <span className="text-lg font-bold text-gray-900">{doctor.rating}</span>
-              </div>
+            {/* Rating and Distance */}
+            <div className="space-y-2 mb-4">
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1">
+                  <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+                  <span className="text-lg font-bold text-gray-900">{doctor.rating}</span>
+                </div>
               <span className="text-sm text-gray-500">
-                ({Math.floor(Math.random() * 100) + 20} reviews)
+                ({doctor.userRatingsTotal || 0} {doctor.userRatingsTotal === 1 ? 'review' : 'reviews'})
               </span>
+              </div>
+              {doctor.distance !== undefined && doctor.distance !== null && (
+                <div className="flex items-center gap-2 p-2 rounded-lg bg-green-50/50 border border-green-100">
+                  <MapPin className="h-4 w-4 text-green-600" />
+                  <span className="text-sm font-medium text-green-700">
+                    {doctor.distance < 1 
+                      ? `${Math.round(doctor.distance * 1000)}m away`
+                      : `${doctor.distance.toFixed(1)} km away`
+                    }
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Available Slots */}
@@ -99,8 +113,8 @@ export const DoctorCard: React.FC<DoctorCardProps> = ({ doctor, isAIPick = false
           </div>
         </CardContent>
 
-        <CardFooter className="pt-0 px-6 pb-6 relative z-10">
-          <Link to={`/doctors/${doctor._id}`} className="w-full">
+            <CardFooter className="pt-0 px-6 pb-6 relative z-10">
+          <Link to={`/doctors/${doctor._id || doctor.googlePlaceId}`} className="w-full">
             <Button className="w-full btn-gradient group/btn">
               <span>View Profile</span>
               <ArrowRight className="ml-2 h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />

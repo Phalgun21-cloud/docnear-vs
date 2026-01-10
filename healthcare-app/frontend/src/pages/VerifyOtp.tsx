@@ -18,14 +18,20 @@ export const VerifyOtp = () => {
   const [role, setRole] = useState<'patient' | 'doctor' | null>(null);
   const [loading, setLoading] = useState(false);
   const [resendTimer, setResendTimer] = useState(60);
+  const [devOtp, setDevOtp] = useState<string | null>(null);
 
   useEffect(() => {
-    // Get email and role from location state
+    // Get email, role, and OTP from location state
     const emailFromState = location.state?.email;
     const roleFromState = location.state?.role;
+    const otpFromState = location.state?.otp;
     if (emailFromState) {
       setEmail(emailFromState);
       setRole(roleFromState || 'patient');
+      if (otpFromState) {
+        setDevOtp(otpFromState);
+        setOtp(otpFromState);
+      }
     } else {
       // If no email in state, redirect to signup
       navigate('/signup');
@@ -118,13 +124,27 @@ export const VerifyOtp = () => {
               Verify Your Email
             </CardTitle>
             <CardDescription className="text-center text-base">
-              We've sent a 6-digit OTP to
+              {devOtp ? (
+                <span className="text-amber-600 font-medium block mb-2">
+                  ⚠️ Email not configured. Use the OTP below.
+                </span>
+              ) : (
+                <>We've sent a 6-digit OTP to</>
+              )}
             </CardDescription>
-            <div className="text-center">
-              <p className="text-sm font-semibold text-primary bg-primary/10 px-4 py-2 rounded-lg inline-block">
-                {email || 'your email'}
-              </p>
-            </div>
+            {!devOtp && (
+              <div className="text-center">
+                <p className="text-sm font-semibold text-primary bg-primary/10 px-4 py-2 rounded-lg inline-block">
+                  {email || 'your email'}
+                </p>
+              </div>
+            )}
+            {devOtp && (
+              <div className="text-center p-4 bg-amber-50 border-2 border-amber-200 rounded-lg">
+                <p className="text-xs text-amber-700 mb-2 font-medium">Your OTP (Development Mode):</p>
+                <p className="text-3xl font-mono font-bold text-amber-900">{devOtp}</p>
+              </div>
+            )}
           </CardHeader>
           <CardContent className="space-y-6">
             <form onSubmit={handleSubmit} className="space-y-5">

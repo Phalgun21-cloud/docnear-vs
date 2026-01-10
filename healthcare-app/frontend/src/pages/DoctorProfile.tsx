@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
+import { Input } from '../components/ui/input';
 import { Skeleton } from '../components/ui/skeleton';
 import {
   Dialog,
@@ -45,15 +46,7 @@ interface Doctor {
   availableSlots?: string[];
 }
 
-// Dummy data for fallback
-const dummyDoctor: Doctor = {
-  _id: '1',
-  name: 'Dr. Sarah Johnson',
-  specialist: 'Cardiologist',
-  rating: 4.8,
-  active: true,
-  availableSlots: ['9:00 AM', '10:00 AM', '11:00 AM', '2:00 PM', '3:00 PM', '4:00 PM'],
-};
+// No dummy data - all data comes from API
 
 export const DoctorProfile = () => {
   const { id } = useParams<{ id: string }>();
@@ -63,6 +56,7 @@ export const DoctorProfile = () => {
   const [doctor, setDoctor] = useState<Doctor | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
+  const [selectedDate, setSelectedDate] = useState<string>('');
   const [bookingOpen, setBookingOpen] = useState(false);
   const [bookingLoading, setBookingLoading] = useState(false);
 
@@ -75,8 +69,12 @@ export const DoctorProfile = () => {
         setDoctor(response.data.doctor || response.data);
       } catch (error) {
         console.error('Failed to fetch doctor:', error);
-        // Fallback to dummy data
-        setDoctor({ ...dummyDoctor, _id: id });
+        toast({
+          title: 'Failed to load doctor',
+          description: 'Could not fetch doctor details. Please try again.',
+          variant: 'destructive',
+        });
+        setDoctor(null);
       } finally {
         setLoading(false);
       }
@@ -86,10 +84,10 @@ export const DoctorProfile = () => {
   }, [id]);
 
   const handleBookAppointment = async () => {
-    if (!selectedSlot || !doctor || !user) {
+    if (!selectedSlot || !selectedDate || !doctor || !user) {
       toast({
-        title: 'Please select a time slot',
-        description: 'Choose a time slot to book your appointment.',
+        title: 'Please complete selection',
+        description: 'Please select both date and time slot to book your appointment.',
         variant: 'destructive',
       });
       return;
@@ -106,16 +104,30 @@ export const DoctorProfile = () => {
 
     setBookingLoading(true);
     try {
+      const doctorId = doctor._id || doctor.googlePlaceId;
+      if (!doctorId) {
+        toast({
+          title: 'Invalid Doctor',
+          description: 'Doctor ID is missing. Please try again.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
       const response = await appointmentsAPI.book({
         patientId: user.id,
-        doctorId: doctor._id,
+        doctorId: doctorId,
+        date: selectedDate,
+        time: selectedSlot,
       });
       
       toast({
         title: 'Appointment Booked!',
-        description: `Your appointment for ${selectedSlot} has been requested. Waiting for doctor's confirmation.`,
+        description: `Your appointment for ${selectedDate} at ${selectedSlot} has been requested. Waiting for doctor's confirmation.`,
       });
       setBookingOpen(false);
+      setSelectedSlot(null);
+      setSelectedDate('');
       navigate('/appointments');
     } catch (error: any) {
       toast({
@@ -387,6 +399,25 @@ export const DoctorProfile = () => {
               <p className="text-sm text-gray-600 mb-2">Doctor:</p>
               <p className="text-xl font-bold text-gray-900">{doctor.name}</p>
               <p className="text-primary font-semibold">{doctor.specialist}</p>
+              {doctor.location?.address && (
+                <p className="text-sm text-gray-600 mt-2 flex items-center gap-1">
+                  <MapPin className="h-3 w-3" />
+                  {doctor.location.address}
+                </p>
+              )}
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Select Date
+              </label>
+              <Input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                min={new Date().toISOString().split('T')[0]}
+                className="h-12 text-base border-2"
+                required
+              />
             </div>
             <div className="p-4 rounded-xl bg-gray-50">
               <p className="text-sm text-gray-600 mb-2">Time Slot:</p>
@@ -412,7 +443,7 @@ export const DoctorProfile = () => {
             </Button>
             <Button 
               onClick={handleBookAppointment} 
-              disabled={bookingLoading}
+              disabled={bookingLoading || !selectedDate}
               className="btn-gradient font-semibold"
             >
               {bookingLoading ? (
