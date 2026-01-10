@@ -27,7 +27,7 @@ router.post("/signup", async (req, res) => {
       email,
       password: hashedPassword,
       otp,
-      isVerified: false,
+      isVerified: true,
     });
 
     console.log(`📩 OTP for signup (DEV MODE): ${otp}`);
@@ -74,9 +74,9 @@ router.post("/login", async (req, res) => {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
-    if (!patient.isVerified) {
-      return res.status(403).json({ message: "Account not verified" });
-    }
+    //if (!patient.isVerified) {
+    //  return res.status(403).json({ message: "Account not verified" });
+
 
     const isMatch = await bcrypt.compare(password, patient.password);
     if (!isMatch) {
