@@ -8,7 +8,7 @@ export const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-12">
           {/* Brand Section */}
           <div className="col-span-1 md:col-span-2">
-            <Link to="/" className="flex items-center space-x-2 mb-4 group">
+            <Link href="/" className="flex items-center space-x-2 mb-4 group">
               <div className="p-2 rounded-lg bg-gradient-to-br from-primary to-primary-light group-hover:scale-110 transition-transform">
                 <Stethoscope className="h-6 w-6 text-white" />
               </div>

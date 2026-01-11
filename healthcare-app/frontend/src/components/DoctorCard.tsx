@@ -114,7 +114,7 @@ export const DoctorCard: React.FC<DoctorCardProps> = ({ doctor, isAIPick = false
         </CardContent>
 
             <CardFooter className="pt-0 px-6 pb-6 relative z-10">
-          <Link to={`/doctors/${doctor._id || doctor.googlePlaceId}`} className="w-full">
+          <Link href={`/doctors/${doctor._id || doctor.googlePlaceId}`} className="w-full">
             <Button className="w-full btn-gradient group/btn">
               <span>View Profile</span>
               <ArrowRight className="ml-2 h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />

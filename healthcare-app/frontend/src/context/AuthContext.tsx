@@ -1,12 +1,12 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { authAPI } from '../services/api';
+import React, { createContext, useContext, ReactNode } from 'react';
+import { useUser, useAuth as useClerkAuth } from '@clerk/clerk-react';
 
 interface User {
   id: string;
   name: string;
   email: string;
   verified: boolean;
-  role?: 'patient' | 'doctor';
+  role?: 'patient' | 'doctor' | 'lab';
 }
 
 interface AuthContextType {
@@ -15,104 +15,74 @@ interface AuthContextType {
   isAuthenticated: boolean;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  signup: (name: string, email: string, password: string, role: 'patient' | 'doctor') => Promise<void>;
-  verifyOtp: (email: string, otp: string, role?: 'patient' | 'doctor') => Promise<{ role: string; user: User }>;
-  logout: () => void;
+  signup: (name: string, email: string, password: string, role: 'patient' | 'doctor' | 'lab') => Promise<void>;
+  verifyOtp: (email: string, otp: string, role?: 'patient' | 'doctor' | 'lab') => Promise<{ role: string; user: User }>;
+  logout: () => Promise<void>;
+  getToken: () => Promise<string | null>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { user: clerkUser, isLoaded: clerkLoaded } = useUser();
+  const { signOut, getToken } = useClerkAuth();
 
-  useEffect(() => {
-    // Load from localStorage on mount
-    const storedToken = localStorage.getItem('token');
-    const storedUser = localStorage.getItem('user');
-    
-    if (storedToken && storedUser) {
-      setToken(storedToken);
-      setUser(JSON.parse(storedUser));
-    }
-    setLoading(false);
-  }, []);
-
-  const login = async (email: string, password: string) => {
-    try {
-      const response = await authAPI.login({ email, password });
-      const { token: newToken, user: userData, role: userRole } = response.data;
-      
-      // Store user with role
-      const userWithRole = { ...userData, role: userRole };
-      
-      setToken(newToken);
-      setUser(userWithRole);
-      localStorage.setItem('token', newToken);
-      localStorage.setItem('user', JSON.stringify(userWithRole));
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Login failed');
-    }
-  };
-
-      const signup = async (name: string, email: string, password: string, role: 'patient' | 'doctor') => {
-        try {
-          const response = await authAPI.signup({ name, email, password, role });
-          // Return response data which may include OTP in development mode
-          return response.data;
-    } catch (error: any) {
-      // Preserve the full error object with response data
-      if (error.response) {
-        // Server responded with error
-        const errorMessage = error.response.data?.message || 'Signup failed';
-        const apiError = new Error(errorMessage);
-        (apiError as any).response = error.response;
-        throw apiError;
-      } else if (error.request) {
-        // Request made but no response (network error)
-        throw new Error('Network error. Please check if the backend server is running.');
-      } else {
-        // Something else happened
-        throw new Error(error.message || 'Signup failed');
+  // Convert Clerk user to our User format
+  // Note: id should be MongoDB ID (from publicMetadata.dbId), not Clerk ID
+  const user: User | null = clerkUser
+    ? {
+        id: (clerkUser.publicMetadata?.dbId as string) || clerkUser.id, // Use MongoDB ID if available, fallback to Clerk ID
+        name: clerkUser.fullName || clerkUser.firstName || clerkUser.emailAddresses[0]?.emailAddress || 'User',
+        email: clerkUser.emailAddresses[0]?.emailAddress || '',
+        verified: clerkUser.emailAddresses[0]?.verification?.status === 'verified',
+        role: (clerkUser.publicMetadata?.role as 'patient' | 'doctor' | 'lab') || 'patient',
       }
-    }
+    : null;
+
+  const isAuthenticated = !!clerkUser && clerkLoaded;
+
+  // These functions are kept for backward compatibility but will redirect to Clerk
+  const login = async () => {
+    // Clerk handles login through their UI components
+    throw new Error('Please use Clerk SignIn component for login');
   };
 
-  const verifyOtp = async (email: string, otp: string, role?: 'patient' | 'doctor') => {
+  const signup = async () => {
+    // Clerk handles signup through their UI components
+    throw new Error('Please use Clerk SignUp component for signup');
+  };
+
+  const verifyOtp = async () => {
+    // Clerk handles email verification automatically
+    throw new Error('Clerk handles email verification automatically');
+  };
+
+  const logout = async () => {
+    await signOut();
+  };
+
+  const getAuthToken = async (): Promise<string | null> => {
     try {
-      const response = await authAPI.verifyOtp({ email, otp, role });
-      const { user: userData, role: userRole } = response.data;
-      
-      // Store user with role
-      const userWithRole = { ...userData, role: userRole };
-      setUser(userWithRole);
-      localStorage.setItem('user', JSON.stringify(userWithRole));
-      
-      return { role: userRole, user: userWithRole };
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'OTP verification failed');
+      const token = await getToken();
+      return token;
+    } catch (error) {
+      console.error('Error getting token:', error);
+      return null;
     }
-  };
-
-  const logout = () => {
-    setUser(null);
-    setToken(null);
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
   };
 
   return (
     <AuthContext.Provider
       value={{
         user,
-        token,
-        isAuthenticated: !!token && !!user,
-        loading,
+        token: null, // Token is retrieved via getToken() when needed
+        isAuthenticated,
+        loading: !clerkLoaded,
         login,
         signup,
         verifyOtp,
         logout,
+        getToken: getAuthToken,
       }}
     >
       {children}

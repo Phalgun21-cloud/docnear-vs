@@ -5,6 +5,11 @@ import { Card, CardContent } from '../components/ui/card';
 import { motion } from 'framer-motion';
 import { Search, CheckCircle, Sparkles, Clock, Heart, ArrowRight, Stethoscope, Users, Star, Calendar } from 'lucide-react';
 import { useState } from 'react';
+import { EMICalculator } from '../components/EMICalculator';
+import { Problems } from '../components/Problems';
+import { Solution } from '../components/Solution';
+import { Services } from '../components/Services';
+import { Partners } from '../components/Partners';
 
 const specialties = [
   { name: 'Cardiologist', icon: '❤️', color: 'bg-gradient-to-br from-red-50 to-red-100', iconBg: 'bg-red-100', textColor: 'text-red-600' },
@@ -49,12 +54,13 @@ export const Landing = () => {
         <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-teal-300/20 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '1s' }} />
         
         <div className="relative container mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-32">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-            className="text-center max-w-4xl mx-auto"
-          >
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+              className="text-center lg:text-left"
+            >
             {/* Badge */}
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
@@ -72,19 +78,19 @@ export const Landing = () => {
               transition={{ delay: 0.3, duration: 0.6 }}
               className="text-5xl md:text-6xl lg:text-7xl font-extrabold mb-6 leading-tight"
             >
-              <span className="text-gradient">Find Trusted</span>
+              <span className="text-gradient">Instant Healthcare</span>
               <br />
-              <span className="text-gray-900">Doctors Near You</span>
+              <span className="text-gray-900">Financing with EMI</span>
             </motion.h1>
 
             <motion.p
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4, duration: 0.6 }}
-              className="text-xl md:text-2xl text-gray-600 mb-10 max-w-2xl mx-auto leading-relaxed"
+              className="text-xl md:text-2xl text-gray-600 mb-10 max-w-2xl leading-relaxed"
             >
-              Connect with verified healthcare professionals instantly. 
-              Book appointments, get quality care, and manage your health effortlessly.
+              Get immediate EMI approval for medical expenses. 
+              Access quality healthcare with flexible payment options - 0% interest for first 3 months.
             </motion.p>
 
             {/* Enhanced Search Bar */}
@@ -92,6 +98,7 @@ export const Landing = () => {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5, duration: 0.6 }}
+              className="mb-6"
             >
               <Card className="glass-effect p-2 shadow-2xl border-0">
                 <CardContent className="p-0">
@@ -116,17 +123,36 @@ export const Landing = () => {
               </Card>
             </motion.div>
 
-            {/* Stats */}
+            {/* CTA Buttons */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6, duration: 0.6 }}
-              className="flex flex-wrap items-center justify-center gap-8 mt-12"
+              className="flex flex-col sm:flex-row gap-4 mb-8"
+            >
+              <Link to="/sign-up">
+                <Button size="lg" className="btn-gradient h-14 px-8 text-lg font-semibold w-full sm:w-auto">
+                  Get Instant EMI
+                </Button>
+              </Link>
+              <Link to="/search">
+                <Button size="lg" variant="outline" className="h-14 px-8 text-lg font-semibold w-full sm:w-auto border-2">
+                  Find Clinics
+                </Button>
+              </Link>
+            </motion.div>
+
+            {/* Stats */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.7, duration: 0.6 }}
+              className="flex flex-wrap items-center gap-8"
             >
               {[
-                { label: 'Verified Doctors', value: '10,000+', icon: Stethoscope },
-                { label: 'Happy Patients', value: '500K+', icon: Users },
-                { label: 'Avg Rating', value: '4.8', icon: Star },
+                { label: 'Patients', value: '50K+', icon: Users },
+                { label: 'Clinics', value: '500+', icon: Stethoscope },
+                { label: 'Approval Time', value: '2 Min', icon: Clock },
               ].map((stat, index) => (
                 <div key={index} className="flex items-center gap-3">
                   <div className="p-3 rounded-xl bg-primary/10">
@@ -140,7 +166,18 @@ export const Landing = () => {
               ))}
             </motion.div>
           </motion.div>
+
+          {/* EMI Calculator - Desktop Only */}
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.8, duration: 0.6 }}
+            className="hidden lg:block"
+          >
+            <EMICalculator />
+          </motion.div>
         </div>
+      </div>
       </section>
 
       {/* Trust Indicators */}
@@ -314,6 +351,18 @@ export const Landing = () => {
         </div>
       </section>
 
+      {/* Problems Section */}
+      <Problems />
+
+      {/* Solution Section */}
+      <Solution />
+
+      {/* Services Section */}
+      <Services />
+
+      {/* Partners Section */}
+      <Partners />
+
       {/* CTA Section */}
       <section className="py-20 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary-light to-teal-400" />
@@ -338,7 +387,7 @@ export const Landing = () => {
               Join thousands of happy patients who trust DocNear for their healthcare needs
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to="/signup">
+              <Link to="/sign-up">
                 <Button size="lg" variant="secondary" className="h-14 px-8 text-lg font-semibold shadow-2xl hover:shadow-glow-primary transition-all">
                   Get Started Free
                   <ArrowRight className="ml-2 w-5 h-5" />

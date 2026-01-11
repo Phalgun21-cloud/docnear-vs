@@ -1,5 +1,6 @@
-const Patient = require("../models/Patient");
-const Doctor = require("../models/Doctor");
+const Patient = require("../models/patient");
+const Doctor = require("../models/doctor");
+const Lab = require("../models/lab");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { generateOtp } = require("../utils/otp");
@@ -9,7 +10,7 @@ const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-in-producti
 
 exports.signup = async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password, role, phone, registrationNumber, labCode, specialization, address } = req.body;
 
     // Validate input
     if (!name || !email || !password || !role) {
@@ -17,18 +18,21 @@ exports.signup = async (req, res) => {
     }
 
     // Validate role
-    if (!['patient', 'doctor'].includes(role.toLowerCase())) {
-      return res.status(400).json({ message: "Role must be either 'patient' or 'doctor'" });
+    if (!['patient', 'doctor', 'lab'].includes(role.toLowerCase())) {
+      return res.status(400).json({ message: "Role must be either 'patient', 'doctor', or 'lab'" });
     }
 
-    const isDoctor = role.toLowerCase() === 'doctor';
-    const Model = isDoctor ? Doctor : Patient;
+    const roleLower = role.toLowerCase();
+    const isDoctor = roleLower === 'doctor';
+    const isLab = roleLower === 'lab';
+    const Model = isDoctor ? Doctor : isLab ? Lab : Patient;
 
-    // Check if user already exists (check both models)
+    // Check if user already exists (check all models)
     const existingPatient = await Patient.findOne({ email });
     const existingDoctor = await Doctor.findOne({ email });
+    const existingLab = await Lab.findOne({ email });
     
-    if (existingPatient || existingDoctor) {
+    if (existingPatient || existingDoctor || existingLab) {
       return res.status(400).json({ message: "Email already registered" });
     }
 
@@ -43,7 +47,20 @@ exports.signup = async (req, res) => {
         password: hashed,
         otp,
         active: true,
-        rating: 0
+        rating: 0,
+        registrationNumber: registrationNumber || '',
+        specialization: specialization || ''
+      });
+    } else if (isLab) {
+      // Create lab profile
+      await Lab.create({
+        name,
+        email,
+        password: hashed,
+        otp,
+        labCode: labCode || '',
+        phone: phone || '',
+        address: address || ''
       });
     } else {
       // Create patient profile
@@ -51,7 +68,8 @@ exports.signup = async (req, res) => {
         name,
         email,
         password: hashed,
-        otp
+        otp,
+        phone: phone || ''
       });
     }
 
@@ -108,13 +126,18 @@ exports.verifyOtp = async (req, res) => {
       return res.status(400).json({ message: "Email and OTP are required" });
     }
 
-    // Try to find in both Patient and Doctor models
+    // Try to find in Patient, Doctor, and Lab models
     let user = await Patient.findOne({ email });
     let userRole = 'patient';
     
     if (!user) {
       user = await Doctor.findOne({ email });
       userRole = 'doctor';
+    }
+    
+    if (!user) {
+      user = await Lab.findOne({ email });
+      userRole = 'lab';
     }
     
     if (!user) {
@@ -165,13 +188,18 @@ exports.login = async (req, res) => {
       return res.status(400).json({ message: "Email and password are required" });
     }
 
-    // Try to find in both Patient and Doctor models
+    // Try to find in Patient, Doctor, and Lab models
     let user = await Patient.findOne({ email });
     let userRole = 'patient';
     
     if (!user) {
       user = await Doctor.findOne({ email });
       userRole = 'doctor';
+    }
+    
+    if (!user) {
+      user = await Lab.findOne({ email });
+      userRole = 'lab';
     }
     
     if (!user) {

@@ -1,11 +1,12 @@
-const Appointment = require("../models/Appointment");
-const Patient = require("../models/Patient");
-const Doctor = require("../models/Doctor");
+const Appointment = require("../models/appointment");
+const Patient = require("../models/patient");
+const Doctor = require("../models/doctor");
+const Service = require("../models/service");
 const { generateOtp } = require("../utils/otp");
 
 exports.bookAppointment = async (req, res) => {
   try {
-    const { patientId, doctorId } = req.body;
+    const { patientId, doctorId, serviceId, date, time, amount, paymentStatus, emiId } = req.body;
 
     // Validate input
     if (!patientId || !doctorId) {
@@ -24,18 +25,36 @@ exports.bookAppointment = async (req, res) => {
       return res.status(404).json({ message: "Doctor not found" });
     }
 
+    // Check if service exists (if provided)
+    if (serviceId) {
+      const service = await Service.findById(serviceId);
+      if (!service) {
+        return res.status(404).json({ message: "Service not found" });
+      }
+    }
+
     // Create appointment
     const appointment = await Appointment.create({
       patientId,
       doctorId,
+      serviceId: serviceId || null,
+      date: date || null,
+      time: time || null,
+      amount: amount || null,
+      paymentStatus: paymentStatus || "Pending",
+      emiId: emiId || null,
       status: "Pending"
     });
 
-    // Populate doctor info in response
+    // Populate info in response
     await appointment.populate('doctorId', 'name specialist rating');
     await appointment.populate('patientId', 'name email');
+    if (serviceId) {
+      await appointment.populate('serviceId', 'name type basePrice');
+    }
 
     res.status(201).json({ 
+      success: true,
       message: "Appointment Requested",
       appointment
     });

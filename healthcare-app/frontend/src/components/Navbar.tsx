@@ -1,19 +1,19 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { UserButton, useUser } from '@clerk/clerk-react';
 import { Button } from './ui/button';
 import { Stethoscope, Menu, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
 
 export const Navbar = () => {
-  const { isAuthenticated, user, logout } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  const { user: clerkUser } = useUser();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  const handleLogout = () => {
-    logout();
-    navigate('/');
-  };
+  
+  // Get role from Clerk metadata or fallback to context
+  const userRole = clerkUser?.publicMetadata?.role || user?.role || 'patient';
 
   return (
     <motion.nav
@@ -24,7 +24,7 @@ export const Navbar = () => {
     >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
-          <Link to="/" className="flex items-center space-x-2 group">
+          <Link href="/" className="flex items-center space-x-2 group">
             <div className="p-1.5 rounded-lg bg-gradient-to-br from-primary to-primary-light group-hover:scale-110 transition-transform">
               <Stethoscope className="h-5 w-5 text-white" />
             </div>
@@ -37,14 +37,14 @@ export const Navbar = () => {
           <div className="hidden md:flex items-center space-x-1">
             {isAuthenticated ? (
               <>
-                {user?.role === 'doctor' ? (
+                {userRole === 'doctor' ? (
                   <>
-                    <Link to="/doctor/dashboard">
+                    <Link href="/doctor/dashboard">
                       <Button variant="ghost" className="font-medium hover:bg-primary/10 hover:text-primary transition-colors">
                         Dashboard
                       </Button>
                     </Link>
-                    <Link to="/appointments">
+                    <Link href="/appointments">
                       <Button variant="ghost" className="font-medium hover:bg-primary/10 hover:text-primary transition-colors">
                         Appointments
                       </Button>
@@ -52,17 +52,17 @@ export const Navbar = () => {
                   </>
                 ) : (
                   <>
-                    <Link to="/dashboard">
+                    <Link href="/dashboard">
                       <Button variant="ghost" className="font-medium hover:bg-primary/10 hover:text-primary transition-colors">
                         Dashboard
                       </Button>
                     </Link>
-                    <Link to="/search">
+                    <Link href="/search">
                       <Button variant="ghost" className="font-medium hover:bg-primary/10 hover:text-primary transition-colors">
                         Find Doctors
                       </Button>
                     </Link>
-                    <Link to="/appointments">
+                    <Link href="/appointments">
                       <Button variant="ghost" className="font-medium hover:bg-primary/10 hover:text-primary transition-colors">
                         Appointments
                       </Button>
@@ -70,30 +70,28 @@ export const Navbar = () => {
                   </>
                 )}
                 <div className="mx-2 h-6 w-px bg-gray-300" />
-                <span className="text-sm font-medium text-gray-700 px-3">
-                  {user?.role === 'doctor' ? 'Dr.' : ''} {user?.name}
-                </span>
-                <Button 
-                  variant="outline" 
-                  onClick={handleLogout}
-                  className="font-medium hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-colors"
-                >
-                  Logout
-                </Button>
+                <UserButton 
+                  afterSignOutUrl="/"
+                  appearance={{
+                    elements: {
+                      avatarBox: "w-10 h-10"
+                    }
+                  }}
+                />
               </>
             ) : (
               <>
-                <Link to="/search">
+                <Link href="/search">
                   <Button variant="ghost" className="font-medium hover:bg-primary/10 hover:text-primary transition-colors">
                     Find Doctors
                   </Button>
                 </Link>
-                <Link to="/login">
+                <Link href="/sign-in">
                   <Button variant="ghost" className="font-medium hover:bg-primary/10 hover:text-primary transition-colors">
-                    Login
+                    Sign In
                   </Button>
                 </Link>
-                <Link to="/signup">
+                <Link href="/sign-up">
                   <Button className="btn-gradient font-semibold">Sign Up</Button>
                 </Link>
               </>
@@ -121,14 +119,14 @@ export const Navbar = () => {
             >
               {isAuthenticated ? (
                 <>
-                  {user?.role === 'doctor' ? (
+                  {userRole === 'doctor' ? (
                     <>
-                      <Link to="/doctor/dashboard" onClick={() => setMobileMenuOpen(false)}>
+                      <Link href="/doctor/dashboard" onClick={() => setMobileMenuOpen(false)}>
                         <Button variant="ghost" className="w-full justify-start">
                           Dashboard
                         </Button>
                       </Link>
-                      <Link to="/appointments" onClick={() => setMobileMenuOpen(false)}>
+                      <Link href="/appointments" onClick={() => setMobileMenuOpen(false)}>
                         <Button variant="ghost" className="w-full justify-start">
                           Appointments
                         </Button>
@@ -136,47 +134,50 @@ export const Navbar = () => {
                     </>
                   ) : (
                     <>
-                      <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)}>
+                      <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)}>
                         <Button variant="ghost" className="w-full justify-start">
                           Dashboard
                         </Button>
                       </Link>
-                      <Link to="/search" onClick={() => setMobileMenuOpen(false)}>
+                      <Link href="/search" onClick={() => setMobileMenuOpen(false)}>
                         <Button variant="ghost" className="w-full justify-start">
                           Find Doctors
                         </Button>
                       </Link>
-                      <Link to="/appointments" onClick={() => setMobileMenuOpen(false)}>
+                      <Link href="/appointments" onClick={() => setMobileMenuOpen(false)}>
                         <Button variant="ghost" className="w-full justify-start">
                           Appointments
                         </Button>
                       </Link>
                     </>
                   )}
-                  <div className="px-3 py-2 text-sm text-gray-600">
-                    {user?.role === 'doctor' ? 'Dr.' : ''} {user?.name}
+                  <div className="px-3 py-2 flex items-center justify-between">
+                    <span className="text-sm text-gray-600">
+                      {userRole === 'doctor' ? 'Dr.' : ''} {user?.name}
+                    </span>
+                    <UserButton 
+                      afterSignOutUrl="/"
+                      appearance={{
+                        elements: {
+                          avatarBox: "w-8 h-8"
+                        }
+                      }}
+                    />
                   </div>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => { handleLogout(); setMobileMenuOpen(false); }}
-                    className="w-full"
-                  >
-                    Logout
-                  </Button>
                 </>
               ) : (
                 <>
-                  <Link to="/search" onClick={() => setMobileMenuOpen(false)}>
+                  <Link href="/search" onClick={() => setMobileMenuOpen(false)}>
                     <Button variant="ghost" className="w-full justify-start">
                       Find Doctors
                     </Button>
                   </Link>
-                  <Link to="/login" onClick={() => setMobileMenuOpen(false)}>
+                  <Link href="/sign-in" onClick={() => setMobileMenuOpen(false)}>
                     <Button variant="ghost" className="w-full justify-start">
-                      Login
+                      Sign In
                     </Button>
                   </Link>
-                  <Link to="/signup" onClick={() => setMobileMenuOpen(false)}>
+                  <Link href="/sign-up" onClick={() => setMobileMenuOpen(false)}>
                     <Button className="w-full btn-gradient">Sign Up</Button>
                   </Link>
                 </>

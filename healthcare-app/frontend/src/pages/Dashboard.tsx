@@ -5,10 +5,11 @@ import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Skeleton } from '../components/ui/skeleton';
 import { motion } from 'framer-motion';
-import { Search, Calendar, Clock, ArrowRight, Stethoscope, Activity, MapPin } from 'lucide-react';
+import { Search, Calendar, Clock, ArrowRight, Stethoscope, Activity, MapPin, Wallet } from 'lucide-react';
 import { appointmentsAPI } from '../services/api';
 import { useToast } from '../components/ui/use-toast';
 import { useEffect, useState } from 'react';
+import { HealthWallet } from '../components/HealthWallet';
 
 interface Appointment {
   _id: string;
@@ -35,6 +36,11 @@ export const Dashboard = () => {
     // Redirect doctors to doctor dashboard
     if (user?.role === 'doctor') {
       navigate('/doctor/dashboard', { replace: true });
+      return;
+    }
+    // Redirect labs to lab dashboard
+    if (user?.role === 'lab') {
+      navigate('/lab/dashboard', { replace: true });
       return;
     }
     if (user?.id) {
@@ -175,6 +181,32 @@ export const Dashboard = () => {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
+                    <CardTitle className="text-xl mb-2">Book Services</CardTitle>
+                    <CardDescription className="text-base">
+                      Book healthcare services with EMI options
+                    </CardDescription>
+                  </div>
+                  <div className="p-4 rounded-2xl bg-gradient-to-br from-teal-500 to-primary shadow-lg group-hover:scale-110 transition-transform">
+                    <Stethoscope className="h-7 w-7 text-white" />
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <Link to="/services">
+                  <Button variant="outline" className="w-full h-12 text-base font-semibold border-2 hover:bg-primary/10 hover:border-primary transition-colors">
+                    View Services
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          <motion.div variants={itemVariants} whileHover={{ scale: 1.02 }}>
+            <Card className="card-hover border-0 shadow-soft group cursor-pointer h-full">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
                     <CardTitle className="text-xl mb-2">My Appointments</CardTitle>
                     <CardDescription className="text-base">
                       View and manage your appointments
@@ -195,6 +227,16 @@ export const Dashboard = () => {
               </CardContent>
             </Card>
           </motion.div>
+        </motion.div>
+
+        {/* Health Wallet Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.6 }}
+          className="mb-10"
+        >
+          <HealthWallet />
         </motion.div>
 
         {/* Recent Appointments */}

@@ -1,6 +1,7 @@
 require("dotenv").config({ path: require('path').resolve(__dirname, '.env') });
 const express = require("express");
 const cors = require("cors");
+const path = require("path");
 const connectDB = require("./config/db");
 
 // Debug: Log environment variables (masked)
@@ -22,6 +23,10 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Serve uploaded files
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Health check endpoint
 app.get("/health", (req, res) => {
@@ -29,9 +34,14 @@ app.get("/health", (req, res) => {
 });
 
 // API Routes
-app.use("/api/auth", require("./routes/authRoutes"));
-app.use("/api/doctors", require("./routes/doctorRoutes"));
-app.use("/api/appointments", require("./routes/appointmentRoutes"));
+app.use("/api/auth", require("./routes/authroutes"));
+app.use("/api/clerk", require("./routes/clerkroutes"));
+app.use("/api/doctors", require("./routes/doctorroutes"));
+app.use("/api/appointments", require("./routes/appointmentroutes"));
+app.use("/api/emi", require("./routes/emiroutes"));
+app.use("/api/services", require("./routes/serviceroutes"));
+app.use("/api/payments", require("./routes/paymentroutes"));
+app.use("/api/lab", require("./routes/labroutes"));
 
 // Error handling middleware
 app.use((err, req, res, next) => {

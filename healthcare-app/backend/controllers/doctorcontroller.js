@@ -1,4 +1,4 @@
-const Doctor = require("../models/Doctor");
+const Doctor = require("../models/doctor");
 const genAI = require("../config/googleAI");
 const { searchNearbyDoctors, getPlaceDetails } = require("../services/googlePlaces");
 
